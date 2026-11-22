@@ -1,0 +1,11 @@
+{
+  "name": "mu-puzzle",
+  "version": "1.0.0",
+  "description": "The MU Puzzle: an interactive exploration of formal systems, Godel numbering and stepping outside a system (Godel, Escher, Bach).",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
