@@ -1,7 +1,7 @@
 // Unit tests for the formal-system engine (no browser needed): npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import {rule1,rule2,rule3,rule4,moves,enc,dec,numMoves,iCount,gen,pathTo,search,runTests,parse} from "../src/engine.js";
+import {rule1,rule2,rule3,rule4,moves,enc,dec,numMoves,explainMove,iCount,gen,pathTo,search,runTests,parse} from "../src/engine.js";
 
 const strs=ms=>ms.map(m=>m.s);
 
@@ -91,4 +91,20 @@ test("parse(): accepts a string or a Godel number", ()=>{
 test("built-in self-test suite passes", ()=>{
   const out=runTests(gen(5,150));
   assert.ok(out.every(([,ok])=>ok),JSON.stringify(out.filter(x=>!x[1])));
+});
+
+test("explainMove(): worked calculations read correctly", ()=>{
+  assert.equal(explainMove(1,31n).text,"31 × 10 = 310");
+  assert.equal(explainMove(2,31n).text,"31 × 10^1 + (31 mod 10^1) = 310 + 1 = 311");
+  assert.equal(explainMove(3,31111n,1).text,"31111 = 3 | 111 | 1, so replace 111 by 0: 3 × 10^2 + 1 = 301");
+  assert.equal(explainMove(4,30011n,1).text,"30011 = 3 | 00 | 11, so delete the 00: 3 × 10^2 + 11 = 311");
+});
+test("explainMove(): its result always equals the real string result, for every move of every node", ()=>{
+  for(const n of gen(5,200)){
+    for(const m of moves(n.s)){
+      const e=explainMove(m.r,enc(n.s),m.i);
+      assert.equal(e.result,enc(m.s),n.s+" rule "+m.r+" at "+m.i);
+      assert.ok(e.text.endsWith("= "+e.result),e.text);
+    }
+  }
 });

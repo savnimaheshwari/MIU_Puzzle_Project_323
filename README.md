@@ -29,7 +29,7 @@ The logic engine has unit tests that run without a browser (Node 18 or newer):
 npm test
 ```
 
-There are 15 tests. They cover the four rules, Gödel encoding and decoding, string rules versus arithmetic rules, derivation recovery, the I-count invariant, and the theorem search.
+There are 17 tests. They cover the four rules, Gödel encoding and decoding, string rules versus arithmetic rules, derivation recovery, the I-count invariant, and the theorem search.
 
 ## The puzzle
 
@@ -106,4 +106,3 @@ mu-puzzle/
 ## Credits
 
 Based on Douglas Hofstadter, *Gödel, Escher, Bach: An Eternal Golden Braid* (MU puzzle in Chapter 1, Gödel numbering in Chapter 9). Built with React and three.js, both MIT licensed.
-# MIU_Puzzle_Project_323

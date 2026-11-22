@@ -24,6 +24,21 @@ export function numMoves(n){const o=[],L=n.toString().length;
   if(q+3<=L&&(n/P)%1000n===111n)o.push([3,(n/(P*1000n))*P*10n+n%P]);
   if(q+2<=L&&(n/P)%100n===0n)o.push([4,(n/(P*100n))*P+n%P])}
  return o}
+
+/* ---------- worked arithmetic: shows HOW a rule acts on the number ---------- */
+// n = the Godel number before the move (BigInt); i = position (0-based) in the
+// string, only needed for rules 3 and 4. Returns {text, result}: the calculation
+// written out, and the number it produces (always equal to enc() of the string result).
+export function explainMove(rule,n,i=0){
+ const L=n.toString().length;
+ if(rule===1){const r=n*10n;return{text:n+" × 10 = "+r,result:r}}
+ if(rule===2){const k=L-1,p=10n**BigInt(k),x=n%p,r=n*p+x;
+  return{text:n+" × 10^"+k+" + ("+n+" mod 10^"+k+") = "+n*p+" + "+x+" = "+r,result:r}}
+ const w=rule===3?3:2,q=L-i-w,P=10n**BigInt(q),a=n/(P*10n**BigInt(w)),b=n%P;
+ if(rule===3){const r=a*P*10n+b;
+  return{text:n+" = "+a+" | 111 | "+b+", so replace 111 by 0: "+a+" × 10^"+(q+1)+" + "+b+" = "+r,result:r}}
+ const r=a*P+b;
+ return{text:n+" = "+a+" | 00 | "+b+", so delete the 00: "+a+" × 10^"+q+" + "+b+" = "+r,result:r}}
 export const iCount=s=>s.split("I").length-1;
 export const dec=n=>{const t=n.toString();return/^[310]+$/.test(t)?t.replace(/3/g,"M").replace(/1/g,"I").replace(/0/g,"U"):null};
 export function search(target,N,cap=20000){const par=new Map([["MI",null]]);let fr=["MI"],d=0,bad=0;

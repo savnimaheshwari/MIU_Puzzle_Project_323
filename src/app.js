@@ -1,6 +1,6 @@
 // app.js: React interface (Play, Explore, Reveal, Self-portrait, tutorial, intro).
 import {h,useState,useMemo,useEffect,useRef,RC,RCs,MC,MCs,short} from "./common.js";
-import {RULES,moves,enc,dec,numMoves,iCount,search,runTests,gen,pathTo,parse} from "./engine.js";
+import {RULES,moves,enc,dec,numMoves,explainMove,iCount,search,runTests,gen,pathTo,parse} from "./engine.js";
 import {layout} from "./layout.js";
 import {Scene} from "./scene.js";
 import {FORM,STAGES,TUT} from "./content.js";
@@ -13,9 +13,13 @@ function Intro({onStart,onSkip}){const [ready,setReady]=useState(false);useEffec
    :h("div",null,h("div",{className:"bar"}),h("p",{style:{marginTop:8}},"Building the derivation tree…")))}
 const Mono=({t})=>h("span",null,[...t].map((c,i)=>h("span",{key:i,className:"c"+c},c)));
 const Align=({s})=>{const t=[...s].slice(0,18);return h("div",{className:"al"},t.map((c,i)=>h("div",{key:i,className:"alc"},h("span",{className:"c"+c},c),h("span",{className:"c"+c},"310"["MIU".indexOf(c)]))),s.length>18?h("div",{className:"alc"},h("span",null,"…")):null)};
-function Steps({items,num}){return h("div",null,items.map((n,i)=>h("div",{className:"step",key:i},
- h("div",{className:"mono"},h(Mono,{t:short(num?enc(n.s).toString():n.s,60)})),
- h("div",{style:{color:"var(--mute)"}},(i?"rule "+n.r+": "+(num?FORM[n.r]:RULES[n.r]):"axiom")+" · I’s: "+iCount(n.s)+" (≡ "+iCount(n.s)%3+")"))))}
+function Steps({items,num}){return h("div",null,items.map((n,i)=>{
+ let calc=null;
+ if(i&&num){const p=items[i-1],m=moves(p.s).find(x=>x.r===n.r&&x.s===n.s);if(m)calc=explainMove(n.r,enc(p.s),m.i).text}
+ return h("div",{className:"step",key:i},
+  h("div",{className:"mono"},h(Mono,{t:short(num?enc(n.s).toString():n.s,60)})),
+  h("div",{style:{color:"var(--mute)"}},(i?"rule "+n.r+": "+(num?FORM[n.r]:RULES[n.r]):"axiom")+" · I’s: "+iCount(n.s)+" (≡ "+iCount(n.s)%3+")"),
+  calc?h("div",{className:"mono",style:{color:"var(--mute)",fontSize:12}},short(calc,150)):null)}))}
 function Deriv({nodes,sel,num}){
  if(sel==null||!nodes[sel])return h("p",null,"Click a node to highlight its derivation from MI.");
  return h("div",null,h("h2",null,"Derivation"),h(Steps,{items:pathTo(nodes,sel).map(n=>({s:n.s,r:n.rule})),num}))}
@@ -43,12 +47,12 @@ export function App(){
   h("p",null,"Start at MI and pick a rule. Every string is also a number (Gödel numbering: M=3, I=1, U=0) and every rule is also arithmetic on that number. You are shifting symbols and doing arithmetic at once."),
   h("div",{className:"cur"},h(Align,{s:cur}),
    h("div",{className:"inf"},"Gödel number "+short(enc(cur).toString(),30)+" · goal: MU = 30 · step "+(hist.length-1)+(cur==="MU"?" · reached!":"")),
-   last.r?h("div",{className:"inf"},"Last step on numbers: "+short(enc(hist[hist.length-2].s).toString(),14)+" → "+short(enc(cur).toString(),14)+" (rule "+last.r+": "+FORM[last.r]+")"):null),
+   last.r?h("div",{className:"inf"},"Last step on numbers (rule "+last.r+"): "+short(explainMove(last.r,enc(hist[hist.length-2].s),last.i).text,150)):null),
   [1,2,3,4].map(r=>{const ms=mv.filter(m=>m.r===r);
    return h("div",{key:r,className:"card"+(ms.length?"":" off"),style:{borderLeftColor:RCs[r]}},
     h("div",{className:"hd"},h("b",{style:{color:RCs[r]}},"Rule "+r),h("span",null,RULES[r])),
     h("div",{className:"why"},"on numbers: "+FORM[r]),
-    ms.length?ms.map((m,i)=>h("button",{key:i,className:"mv mono",onClick:()=>setHist([...hist,m])},(r>2?"at "+(m.i+1)+": ":"")+"→ ",h(Mono,{t:short(m.s,18)}),h("span",{style:{color:"var(--mute)"}}," = "+short(enc(m.s).toString(),18))))
+    ms.length?ms.map((m,i)=>h("button",{key:i,className:"mv mono",onClick:()=>setHist([...hist,m])},(r>2?"at "+(m.i+1)+": ":"")+"→ ",h(Mono,{t:short(m.s,18)}),h("span",{style:{color:"var(--mute)"}}," = "+short(enc(m.s).toString(),18)),cur.length<=16?h("div",{className:"why"},explainMove(r,enc(cur),m.i).text):null))
     :h("div",{className:"why"},"Not available: "+["","needs a string ending in I","needs a string starting with M","needs III in the string","needs UU in the string"][r]))}),
   !mv.some(m=>m.r>2)?h("p",null,"Rules 3 and 4 need III or UU. From MI only rules 1 and 2 apply until you build one, for example by doubling with rule 2."):null,
   h("div",{className:"row"},h("button",{onClick:()=>setHist([{s:"MI",r:0}])},"Start over")));
